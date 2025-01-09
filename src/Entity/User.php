@@ -50,7 +50,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 255, unique: true)]
-    #[Groups(['user:read', 'user:write'])]
+    #[Groups(['user:read', 'user:write', 'cheese_listing:item:get', "cheese_listing:write"])]
     #[Assert\NotBlank()]
     private ?string $username = null;
 
@@ -58,6 +58,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, CheeseListing>
      */
     #[ORM\OneToMany(targetEntity: CheeseListing::class, mappedBy: 'owner')]
+    #[Groups(['user:read', 'user:write'])]
     private Collection $cheeseListings;
 
     public function __construct()

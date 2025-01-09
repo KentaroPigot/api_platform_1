@@ -28,7 +28,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[
     ApiResource(
         operations: [
-            new Get(),
+            new Get(normalizationContext: ['groups' => ['cheese_listing:read', 'cheese_listing:item:get']]),
             // new Get(uriTemplate: '/blorp/{id}'),
             new GetCollection(),
             new Post(),
@@ -58,7 +58,7 @@ class CheeseListing
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['cheese_listing:read', 'cheese_listing:write'])]
+    #[Groups(['cheese_listing:read', 'cheese_listing:write', 'user:read'])]
     #[Assert\NotBlank]
     #[Assert\Length(min: 2, max: 50, maxMessage: 'Le titre ne doit pas dépasser {{ limit }} caractères')]
     private ?string $title = null;
@@ -67,7 +67,7 @@ class CheeseListing
     private ?string $description = null;
 
     #[ORM\Column]
-    #[Groups(['cheese_listing:read', 'cheese_listing:write'])]
+    #[Groups(['cheese_listing:read', 'cheese_listing:write', 'user:read'])]
     #[Assert\NotBlank]
     private ?int $price = null;
 
@@ -78,7 +78,9 @@ class CheeseListing
     private ?bool $isPublished = false;
 
     #[ORM\ManyToOne(inversedBy: 'cheeseListings')]
+    #[Groups(['cheese_listing:write', 'cheese_listing:read'])]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\Valid] // Permet de valider les données de l'entité associée
     private ?User $owner = null;
 
     public function __construct(string $title = null)
