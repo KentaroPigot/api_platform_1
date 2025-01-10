@@ -7,21 +7,17 @@ use ApiPlatform\Doctrine\Orm\Filter\RangeFilter;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Put;
 use ApiPlatform\Serializer\Filter\PropertyFilter;
 use App\Repository\CheeseListingRepository;
 use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use PhpParser\Builder\Property;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\SerializedName;
-use Symfony\Component\Validator\Constraints\Range;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CheeseListingRepository::class)]
@@ -29,12 +25,9 @@ use Symfony\Component\Validator\Constraints as Assert;
     ApiResource(
         operations: [
             new Get(normalizationContext: ['groups' => ['cheese_listing:read', 'cheese_listing:item:get']]),
-            // new Get(uriTemplate: '/blorp/{id}'),
             new GetCollection(),
             new Post(),
-            // new Put(),
             new Patch(),
-            // new Delete()
         ],
         shortName: 'cheeses',
         normalizationContext: ['groups' => ['cheese_listing:read'], 'swagger_definition_name' => 'Read'],
@@ -47,7 +40,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     ),
 ]
 #[ApiFilter(BooleanFilter::class, properties: ['isPublished'])]
-#[ApiFilter(SearchFilter::class, properties: ['title' => 'partial', "description" => "partial"])]
+#[ApiFilter(SearchFilter::class, properties: ['title' => 'partial', "description" => "partial", "owner" => "exact", "owner.username" => "partial"])]
 #[ApiFilter(RangeFilter::class, properties: ['price'])]
 #[ApiFilter(PropertyFilter::class)]
 class CheeseListing
@@ -58,7 +51,7 @@ class CheeseListing
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['cheese_listing:read', 'cheese_listing:write', 'user:read'])]
+    #[Groups(['cheese_listing:read', 'cheese_listing:write', 'user:read', 'user:write'])]
     #[Assert\NotBlank]
     #[Assert\Length(min: 2, max: 50, maxMessage: 'Le titre ne doit pas dépasser {{ limit }} caractères')]
     private ?string $title = null;
@@ -67,7 +60,7 @@ class CheeseListing
     private ?string $description = null;
 
     #[ORM\Column]
-    #[Groups(['cheese_listing:read', 'cheese_listing:write', 'user:read'])]
+    #[Groups(['cheese_listing:read', 'cheese_listing:write', 'user:read', 'user:write'])]
     #[Assert\NotBlank]
     private ?int $price = null;
 
@@ -93,6 +86,7 @@ class CheeseListing
     {
         return $this->id;
     }
+
 
     public function getTitle(): ?string
     {
@@ -128,7 +122,7 @@ class CheeseListing
         return $this;
     }
 
-    #[Groups(['cheese_listing:write'])]
+    #[Groups(['cheese_listing:write', 'user:write'])]
     #[SerializedName('description')]
     public function setTextDescription(string $description): static
     {
